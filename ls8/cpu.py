@@ -9,8 +9,10 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.reg = [0] * 8
+        self.reg[7] = 0xF4
         self.ram = [0] * 256
         self.pc = 0
+        self.sp = 7
 
     def ram_read(self, MAR):
         return self.ram[MAR]
@@ -73,6 +75,8 @@ class CPU:
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         running = True
 
@@ -93,6 +97,31 @@ class CPU:
             elif command == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.pc += 3
+
+            elif command == PUSH:
+                self.reg[self.sp] -= 1
+
+                reg_num = self.ram[self.pc + 1]
+
+                val = self.reg[reg_num]
+
+                top = self.reg[self.sp]
+                self.ram[top] = val
+
+                self.pc += 2
+
+            elif command == POP:
+                reg_num = self.ram[self.pc + 1]
+
+                top = self.reg[self.sp]
+
+                val = self.ram[top]
+
+                self.reg[reg_num] = val
+
+                self.reg[self.sp] += 1
+
+                self.pc += 2
 
             elif command == HLT:
                 running = False
